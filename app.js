@@ -4,6 +4,9 @@ var cheerio = require('cheerio');
 var redis = require('redis'),
     client = redis.createClient();
 
+var sys = require('sys')
+var exec = require('child_process').exec;
+var child;
 
 var wrapString = function (str) {
 	if (typeof str == 'undefined') {
@@ -98,16 +101,10 @@ outputToFile({ fullname : 'fullname', username : 'username', email : 'email', lo
 
 var myArgs = process.argv.slice(2);
 //findUserInfo('/kevinsawicki', 0);
-for (var i = myArgs.length - 1; i >= 0; i--) {
-	findUserInfo('/' + myArgs[i], 0);
-};
-/*
-app.get('/scrape', function(req, res){
-	var log = fs.createWriteStream('log.txt', {'flags': 'a'});
-	findUserInfo('/kevinsawicki', 0)
-	res.send('Check your console!');
-})
-
-app.listen('8081')
-console.log('Magic happens on port 8081');
-exports = module.exports = app;*/
+child = exec("redis-cli FLUSHALL", function (error, stdout, stderr) {
+	console.log("redis-cli FLUSHALL");
+	console.log(stdout);
+	for (var i = myArgs.length - 1; i >= 0; i--) {
+		findUserInfo('/' + myArgs[i], 0);
+	};
+});
