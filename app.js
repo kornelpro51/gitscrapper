@@ -64,13 +64,15 @@ var findUserInfo = function (path, deep) {
 				        'User-Agent': 'request'
 				    }
 				}, function(error, response, html){
-					var start_idx = html.indexOf('"email":');
-					var end_idx = -1;
-					if (start_idx >= 0 ) {
-						end_idx = html.indexOf('"', start_idx+10);
-					}
-					if (start_idx > 0 && end_idx > 0) {
-						info.email = html.substring(start_idx+10, end_idx);
+					if (html.indexOf) {
+						var start_idx = html.indexOf('"email":');
+						var end_idx = -1;
+						if (start_idx >= 0 ) {
+							end_idx = html.indexOf('"', start_idx+10);
+						}
+						if (start_idx > 0 && end_idx > 0) {
+							info.email = html.substring(start_idx+10, end_idx);
+						}
 					}
 					outputToFile(info);
 				});
