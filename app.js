@@ -17,25 +17,27 @@ var wrapString = function (str) {
 
 var findFollowers = function (furl, deep) {
 	request(furl, function(error, response, html){
-		var $ = cheerio.load(html);
-		$('.follow-list-name').each(function(idx, elem){
-			var follower = $(this).find('a').attr('href');
-			//findUserInfo(follower, deep);
-			client.get(follower, function(err, reply) {
-				if (reply == null) {
-					client.set(follower, 'visited');
-					findUserInfo(follower, deep);
-				} else {
-					console.log(" *** redis dup *** ", follower, reply);
-				}
-			});
-        });
-        if ($('.pagination').length > 0 ) {
-        	var nextPage = $('.pagination').children().eq(1).attr('href');
-        	if (nextPage != null) {
-				findFollowers(nextPage);
-        	}
-        }
+		if(!error) {
+			var $ = cheerio.load(html);
+			$('.follow-list-name').each(function(idx, elem){
+				var follower = $(this).find('a').attr('href');
+				//findUserInfo(follower, deep);
+				client.get(follower, function(err, reply) {
+					if (reply == null) {
+						client.set(follower, 'visited');
+						findUserInfo(follower, deep);
+					} else {
+						console.log(" *** redis dup *** ", follower, reply);
+					}
+				});
+	        });
+	        if ($('.pagination').length > 0 ) {
+	        	var nextPage = $('.pagination').children().eq(1).attr('href');
+	        	if (nextPage != null) {
+					findFollowers(nextPage);
+	        	}
+	        }
+		}
 	});
 }
 function outputToFile(info) {
@@ -48,6 +50,7 @@ var findUserInfo = function (path, deep) {
 	var followerUrl = 'https://github.com' + path + '/followers';
 	var apiUrl = 'https://api.github.com/users' + path + '/events/public';
 	request(url, function(error, response, html){
+		console.log(error)
 		if(!error){
 			var $ = cheerio.load(html);
 			var info = { fullname : '', username : '', email : '', location: ''};
@@ -57,6 +60,7 @@ var findUserInfo = function (path, deep) {
 				info.email = decodeURIComponent($('.js-obfuscate-email').data('email'));
 			}
 			info.location = $('li[itemprop="homeLocation"]').text();
+
 			if ( info.email === '') {
 				request({
 				    url: apiUrl,
@@ -64,14 +68,16 @@ var findUserInfo = function (path, deep) {
 				        'User-Agent': 'request'
 				    }
 				}, function(error, response, html){
-					if (html.indexOf) {
-						var start_idx = html.indexOf('"email":');
-						var end_idx = -1;
-						if (start_idx >= 0 ) {
-							end_idx = html.indexOf('"', start_idx+10);
-						}
-						if (start_idx > 0 && end_idx > 0) {
-							info.email = html.substring(start_idx+10, end_idx);
+					if (!error) {
+						if (html.indexOf) {
+							var start_idx = html.indexOf('"email":');
+							var end_idx = -1;
+							if (start_idx >= 0 ) {
+								end_idx = html.indexOf('"', start_idx+10);
+							}
+							if (start_idx > 0 && end_idx > 0) {
+								info.email = html.substring(start_idx+10, end_idx);
+							}
 						}
 					}
 					outputToFile(info);
@@ -80,10 +86,10 @@ var findUserInfo = function (path, deep) {
 				outputToFile(info);
 			}
 			
-			//findFollowers(followerUrl, deep + 1);
-			if (deep < 2) {
+			findFollowers(followerUrl, deep + 1);
+			/*if (deep < 0) {
 				findFollowers(followerUrl, deep + 1);
-			}
+			}*/
 		}
 	})
 }
