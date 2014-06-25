@@ -7,7 +7,8 @@ var redis = require('redis'),
 var sys = require('sys')
 var exec = require('child_process').exec;
 var child;
-
+var isWritten;
+var rewriteBuffer = [];
 var wrapString = function (str) {
 	if (typeof str == 'undefined') {
 		return "";
@@ -43,11 +44,17 @@ var findFollowers = function (furl, deep) {
 		}
 	});
 }
+
 function outputToFile(info) {
 	console.log(" - user  ", JSON.stringify(info));
-	log.write(wrapString(info.fullname) + "," + wrapString(info.username) 
+	isWritten = log.write(wrapString(info.fullname) + "," + wrapString(info.username) 
 		+ "," + wrapString(info.email) + "," + wrapString(info.location) + '\n');
+	if (!isWritten) {
+		rewriteBuffer.push(info);
+	}
+	//log.once('drain', outputToFile);
 }
+
 var findUserInfo = function (path, deep) {
 	var url = 'https://github.com' + path;
 	var followerUrl = 'https://github.com' + path + '/followers';
@@ -96,6 +103,13 @@ var findUserInfo = function (path, deep) {
 	})
 }
 var log = fs.createWriteStream('log.csv', {'flags': 'w'});
+
+log.on('drain',function(){
+	while (rewriteBuffer.length > 0 ){
+		outputToFile(rewriteBuffer.shift()); //<-- the place to test
+	}
+});
+
 // write csv headers
 outputToFile({ fullname : 'fullname', username : 'username', email : 'email', location: 'location'});
 
