@@ -1,0 +1,31 @@
+{
+  "name": "scrapper",
+  "version": "0.0.0",
+  "description": "Github user scrapper",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "3.4.6",
+    "jade": "*",
+    "mysql": "~2.2.0",
+    "passport": "latest",
+    "passport-local": "latest",
+    "underscore": "latest",
+    "connect-flash": "latest",
+    "view-helpers": "latest",
+    "async": "latest",
+    "nodemailer": "latest",
+    "email-templates": "latest",
+    "node-oauth2-server": "latest",
+    "sequelize": "~2.0.0-beta.2",
+    "sqlite3": "~2.1.5",
+    "lodash": "~2.4.1",
+    "swig": "latest",
+    "consolidate": "^0.10.0",
+    "connect-mongo": "^0.4.1"
+  }
+  "engines": {
+    "node": ">=0.8.15"
+  }
+}
