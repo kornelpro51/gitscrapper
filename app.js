@@ -50,7 +50,6 @@ var findUserInfo = function (path, deep) {
 	var followerUrl = 'https://github.com' + path + '/followers';
 	var apiUrl = 'https://api.github.com/users' + path + '/events/public';
 	request(url, function(error, response, html){
-		console.log(error)
 		if(!error){
 			var $ = cheerio.load(html);
 			var info = { fullname : '', username : '', email : '', location: ''};
