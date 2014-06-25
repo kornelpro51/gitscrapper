@@ -16,17 +16,17 @@ var wrapString = function (str) {
 }
 
 var findFollowers = function (furl, deep) {
-	console.log(furl);
 	request(furl, function(error, response, html){
 		var $ = cheerio.load(html);
 		$('.follow-list-name').each(function(idx, elem){
 			var follower = $(this).find('a').attr('href');
 			//findUserInfo(follower, deep);
 			client.get(follower, function(err, reply) {
-				console.log(furl, reply);
 				if (reply == null) {
 					client.set(follower, 'visited');
 					findUserInfo(follower, deep);
+				} else {
+					console.log(" *** redis dup *** ", follower, reply);
 				}
 			});
         });
@@ -39,6 +39,7 @@ var findFollowers = function (furl, deep) {
 	});
 }
 function outputToFile(info) {
+	console.log(" - user  ", JSON.stringify(info));
 	log.write(wrapString(info.fullname) + "," + wrapString(info.username) 
 		+ "," + wrapString(info.email) + "," + wrapString(info.location) + '\n');
 }
@@ -71,13 +72,9 @@ var findUserInfo = function (path, deep) {
 					if (start_idx > 0 && end_idx > 0) {
 						info.email = html.substring(start_idx+10, end_idx);
 					}
-					//console.log(" - github api - ", html, start_idx, end_idx);
-
-					//console.log(info);
 					outputToFile(info);
 				});
 			} else {
-				//console.log(info);
 				outputToFile(info);
 			}
 			
@@ -86,12 +83,12 @@ var findUserInfo = function (path, deep) {
 				findFollowers(followerUrl, deep + 1);
 			}
 		}
-	//  if ( deep == 0 ) {
-	//		log.end()	
-	//	}
 	})
 }
-var log = fs.createWriteStream('log.txt', {'flags': 'w'});
+var log = fs.createWriteStream('log.csv', {'flags': 'w'});
+// write csv headers
+outputToFile({ fullname : 'fullname', username : 'username', email : 'email', location: 'location'});
+
 var myArgs = process.argv.slice(2);
 //findUserInfo('/kevinsawicki', 0);
 for (var i = myArgs.length - 1; i >= 0; i--) {
