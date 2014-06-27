@@ -82,7 +82,6 @@ var findFollowers = function (furl, deep) {
 				var follower = $(this).find('a').attr('href');
 				redisClient.get(follower, function(err, reply) {
 					if (reply == null) {
-						redisClient.set(follower, 'visited');
 						findUserInfo(follower, deep);
 					} else {
 						//console.log(" *** redis dup *** ", follower, reply);
@@ -100,6 +99,8 @@ var findFollowers = function (furl, deep) {
 }
 
 var findUserInfo = function (path, deep) {
+	redisClient.set(path, 'visited');
+
 	var url = 'https://github.com' + path;
 	var followerUrl = 'https://github.com' + path + '/followers';
 	var apiUrl = 'https://api.github.com/users' + path + '/events/public';
